@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <body style="margin: 0px;overflow: hidden;">
+        <canvas id="canvas"></canvas>
+    </body>
+</html>
+<script src="./perlin.js"></script>
+<script>
+
+const MAX_ITERATIONS = 250;
+const NOISE_WAVELENGTH = 300;
+const WIND_STRENGTH = .05;
+
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+var tracers = [];
+var iterations;
+var windSeedX;
+var windSeedY;
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    windSeedX = Math.random();
+    windSeedY = Math.random();
+    initializeTracers();
+    paint();
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas, false);
+
+function initializeTracers() {
+    iterations = 0;
+    tracers = [];
+    for(var i = 0; i < canvas.width; i+=5) {
+        tracers.push({
+            x: i,
+            y: canvas.height,
+            velocityX: 0,
+            velocityY: -3,
+            color:"#000000"
+        })
+    }
+}
+
+function paint() {
+    tracers.forEach(drawTracer);
+    ctx.stroke();
+
+    if(iterations < MAX_ITERATIONS) {
+        iterations++;
+        setTimeout(paint, 5);
+    }
+}
+
+function drawTracer(tracer) {
+    
+    ctx.strokeStyle = tracer.color;
+    ctx.moveTo(tracer.x, tracer.y);
+    noise.seed(windSeedX);
+    tracer.velocityX += noise.simplex2(tracer.x / NOISE_WAVELENGTH, tracer.y / NOISE_WAVELENGTH) * WIND_STRENGTH;
+    tracer.x += tracer.velocityX;
+    noise.seed(windSeedY);
+    tracer.velocityY += noise.simplex2(tracer.x / NOISE_WAVELENGTH, tracer.y / NOISE_WAVELENGTH) * WIND_STRENGTH;
+    tracer.y += tracer.velocityY;
+    ctx.lineTo(tracer.x, tracer.y);
+}
+
+</script>
