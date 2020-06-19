@@ -48,10 +48,8 @@ function initializeTracers() {
         green = colorScale(noise.simplex2(i/COLOR_WAVELENGTH, 200));
         blue = colorScale(noise.simplex2(i/COLOR_WAVELENGTH, 300));
         tracers.push({
-            xOld: i,
-            yOld: canvas.height,
-            xNew: i,
-            yNew: canvas.height,
+            x: i,
+            y: canvas.height,
             velocityX: 0,
             velocityY: -3,
             color: 'rgb('+red+', '+green+', '+blue+')'
@@ -60,10 +58,7 @@ function initializeTracers() {
 }
 
 function paint() {
-    tracers.forEach(calculateNextStep);
-    for(var i = 0; i < tracers.length -1; i++) {
-        fillTracers(tracers[i], tracers[i+1]);
-    }
+    tracers.forEach(drawTracer);
     
     if(iterations < MAX_ITERATIONS) {
         iterations++;
@@ -71,31 +66,20 @@ function paint() {
     }
 }
 
-function calculateNextStep(tracer) {
-    tracer.xOld = tracer.xNew;
-    tracer.yOld = tracer.yNew;
+function drawTracer(tracer) {
     
-    noise.seed(windSeedX);
-    tracer.velocityX += noise.simplex2(tracer.xOld / NOISE_WAVELENGTH, tracer.yOld / NOISE_WAVELENGTH) * WIND_STRENGTH;
-    tracer.xNew += tracer.velocityX;
-    noise.seed(windSeedY);
-    tracer.velocityY += noise.simplex2(tracer.xOld / NOISE_WAVELENGTH, tracer.yOld / NOISE_WAVELENGTH) * WIND_STRENGTH;
-    tracer.yNew += tracer.velocityY;
-    
-    
-}
-
-function fillTracers(leftTracer, rightTracer) {
-    ctx.strokeStyle = leftTracer.color;
-    ctx.fillStyle = leftTracer.color;
+    ctx.strokeStyle = tracer.color;
     ctx.beginPath();
-    ctx.moveTo(leftTracer.xOld, leftTracer.yOld);
-    ctx.lineTo(leftTracer.xNew, leftTracer.yNew);
-    ctx.lineTo(rightTracer.xNew, rightTracer.yNew);
-    ctx.lineTo(rightTracer.xOld, rightTracer.yOld);
-    ctx.closePath();
-    ctx.fill()
+    ctx.moveTo(tracer.x, tracer.y);
+    noise.seed(windSeedX);
+    tracer.velocityX += noise.simplex2(tracer.x / NOISE_WAVELENGTH, tracer.y / NOISE_WAVELENGTH) * WIND_STRENGTH;
+    tracer.x += tracer.velocityX;
+    noise.seed(windSeedY);
+    tracer.velocityY += noise.simplex2(tracer.x / NOISE_WAVELENGTH, tracer.y / NOISE_WAVELENGTH) * WIND_STRENGTH;
+    tracer.y += tracer.velocityY;
+    ctx.lineTo(tracer.x, tracer.y);
     ctx.stroke();
+    
 }
 
 </script>
