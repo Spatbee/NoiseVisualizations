@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <body style="margin: 0px;overflow: hidden;">
+        <div id = "canvases">
+            <canvas id="canvas"></canvas>
+        </div>
+    </body>
+</html>
+<script src="./perlin.js"></script>
+<script>
+
+const MAX_ITERATIONS = 250;
+const NOISE_WAVELENGTH = 300;
+const WIND_STRENGTH = .05;
+const COLOR_WAVELENGTH = Math.random() * 2000;
+
+var tracers = [];
+var iterations;
+var windSeedX;
+var windSeedY;
+var redSeed = Math.random();
+var greenSeed = Math.random();
+var blueSeed = Math.random();
+
+function resizeCanvas() {
+   
+    windSeedX = Math.random();
+    windSeedY = Math.random();
+    colorSeed = Math.random();
+    initializeTracers();
+    paint();
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas, false);
+
+function colorScale(noiseNum) {
+    return Math.floor((noiseNum + 1) * 128);
+}
+
+function initializeTracers() {
+    iterations = 0;
+    tracers = [];
+    var canvases = document.getElementById("canvases");
+    canvases.innerHTML = "";
+    var canvasStrings = "";
+    for(var i = 0; i < window.innerWidth; i+=8) {
+        canvasStrings = canvasStrings + "<canvas id='canvas-" + i + "' style='position:absolute;z-index:" + i + ";' width=" + window.innerWidth +" height=" + window.innerHeight + "></canvas>";
+    }
+    canvases.innerHTML = canvasStrings;
+    for(var i = 0; i < window.innerWidth; i+=8) {
+        
+        noise.seed(colorSeed);
+        red = colorScale(noise.simplex2(i/COLOR_WAVELENGTH, 100))
+        green = colorScale(noise.simplex2(i/COLOR_WAVELENGTH, 200));
+        blue = colorScale(noise.simplex2(i/COLOR_WAVELENGTH, 300));
+        var ctx = document.getElementById("canvas-"+i).getContext("2d");
+        
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        tracer = {
+            ctx: ctx,
+            x1: i,
+            y1: window.innerHeight,
+            x2: i,
+            y2: window.innerHeight,
+            velocityX: 0,
+            velocityY: -3,
+            color: 'rgb('+red+', '+green+', '+blue+')'
+        };
+        tracer.ctx.fillStyle = tracer.color;
+        tracer.ctx.strokeStyle = tracer.color;
+        tracers.push(tracer);
+    }
+}
+
+function paint() {
+    tracers.forEach(calculateNextStep);
+    for(var i = 0; i < tracers.length -1; i++) {
+        drawTracer(tracers[i], tracers[i+1]);
+    }
+    
+    if(iterations < MAX_ITERATIONS) {
+        iterations++;
+        setTimeout(paint, 5);
+    }
+}
+
+function calculateNextStep(tracer) {
+    tracer.x2 = tracer.x1;
+    tracer.y2 = tracer.y1;
+    noise.seed(windSeedX);
+    tracer.velocityX += noise.simplex2(tracer.x1 / NOISE_WAVELENGTH, tracer.y1 / NOISE_WAVELENGTH) * WIND_STRENGTH;
+    tracer.x1 += tracer.velocityX;
+    noise.seed(windSeedY);
+    tracer.velocityY += noise.simplex2(tracer.x1 / NOISE_WAVELENGTH, tracer.y1 / NOISE_WAVELENGTH) * WIND_STRENGTH;
+    tracer.y1 += tracer.velocityY;
+}
+
+function drawTracer(leftTracer, rightTracer) {
+    
+    var ctx = leftTracer.ctx;
+    //ctx.strokeStyle = leftTracer.color;
+    ctx.beginPath();
+    ctx.moveTo(leftTracer.x1, leftTracer.y1);
+    ctx.lineTo(leftTracer.x2, leftTracer.y2);
+    ctx.lineTo(rightTracer.x2, rightTracer.y2);
+    ctx.lineTo(rightTracer.x1, rightTracer.y1);
+    ctx.closePath()
+    ctx.stroke();
+    ctx.fill();
+    
+}
+
+</script>
