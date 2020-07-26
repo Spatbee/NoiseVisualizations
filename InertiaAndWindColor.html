@@ -17,7 +17,7 @@ var ctx = canvas.getContext("2d");
 var tracers = [];
 var iterations;
 var colorNoise, windXNoise, windYNoise;
-
+var runNumber = 0;
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -27,7 +27,7 @@ function resizeCanvas() {
     windYNoise = makeSomeNoise(this);
     [colorNoise, windXNoise, windYNoise].forEach(n => n.seed(Math.random()));
     initializeTracers();
-    paint();
+    paint(++runNumber);
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas, false);
@@ -53,12 +53,11 @@ function initializeTracers() {
     }
 }
 
-function paint() {
+function paint(run) {
     tracers.forEach(drawTracer);
-    
-    if(iterations < MAX_ITERATIONS) {
+    if(iterations < MAX_ITERATIONS && run === runNumber) {
         iterations++;
-        setTimeout(paint, 5);
+        setTimeout(function(){paint(run)}, 5);
     }
 }
 
