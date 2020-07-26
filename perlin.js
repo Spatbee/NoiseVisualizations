@@ -14,7 +14,7 @@
  *
  */
 
-(function(global){
+function makeSomeNoise(global){
   var module = global.noise = {};
 
   function Grad(x, y, z) {
@@ -307,4 +307,6 @@
        v);
   };
 
-})(this);
+  return module;
+}
+makeSomeNoise(this);

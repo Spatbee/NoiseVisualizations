@@ -7,53 +7,47 @@
 <script src="./perlin.js"></script>
 <script>
 
-const SQUARE_SIZE_PIXELS = 10;
-const TOPO_DIVISION = .25;
-var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
+    const SQUARE_SIZE_PIXELS = 8;
+    const TOPO_DIVISION = .25;
+    const REFRESH_RATE = 60;
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas, false);
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
 
-
-topoSeed = Math.random();
-redSeed = Math.random();
-greenSeed = Math.random();
-blueSeed = Math.random();
-
-function colorScale(noiseNum) {
-    return Math.floor((noiseNum + 1) * 128);
-}
-
-function paint() {
     var height = window.innerHeight/SQUARE_SIZE_PIXELS + 1;
     var width = window.innerWidth/SQUARE_SIZE_PIXELS + 1;
-    var time = new Date().getTime() / 7000;
-    for(i = 0; i < width; i++) {
-        for(j = 0; j < height; j++) {
-            noise.seed(topoSeed);
-            var value = noise.simplex3(i / 100, j / 100, time);
-            if(Math.abs(value % TOPO_DIVISION) > TOPO_DIVISION/2) {
-                noise.seed(redSeed);
-                red = colorScale(noise.simplex3(i / 100, j / 100, time));
-                noise.seed(greenSeed);
-                green = colorScale(noise.simplex3(i / 100, j / 100, time));
-                noise.seed(blueSeed);
-                blue = colorScale(noise.simplex3(i / 100, j / 100, time));
-                ctx.fillStyle = 'rgb('+red+', '+green+', '+blue+')';
-            } else {
-                ctx.fillStyle = "#FFFFFF";
-            }
-            ctx.fillRect(i * SQUARE_SIZE_PIXELS, j * SQUARE_SIZE_PIXELS, SQUARE_SIZE_PIXELS ,SQUARE_SIZE_PIXELS);
-        }
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        height = window.innerHeight/SQUARE_SIZE_PIXELS + 1;
+        width = window.innerWidth/SQUARE_SIZE_PIXELS + 1;
     }
-    setTimeout(paint, 35);
-}
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas, false);
 
-paint();
+    var topoNoise = makeSomeNoise(this), redNoise = makeSomeNoise(this), greenNoise = makeSomeNoise(this), blueNoise = makeSomeNoise(this);
+    [topoNoise, redNoise, greenNoise, blueNoise].forEach(n => n.seed(Math.random()));
+    
+    const colorScale = (noiseNum) => Math.floor((noiseNum + 1) * 128);
 
+    const period = 1000 / REFRESH_RATE;
+    (function paint() {
+        time = Date.now() / 7000;
+        for (i = 0; i < width; i++) {
+            for (j = 0; j < height; j++) {
+                var value = topoNoise.simplex3(i / 100, j / 100, time);
+                if (Math.abs(value % TOPO_DIVISION) > TOPO_DIVISION/2) {
+                    red = colorScale(redNoise.simplex3(i / 100, j / 100, time));
+                    green = colorScale(greenNoise.simplex3(i / 100, j / 100, time));
+                    blue = colorScale(blueNoise.simplex3(i / 100, j / 100, time));
+                    ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+                } else {
+                    ctx.fillStyle = "#FFFFFF";
+                }
+                ctx.fillRect(i * SQUARE_SIZE_PIXELS, j * SQUARE_SIZE_PIXELS, SQUARE_SIZE_PIXELS ,SQUARE_SIZE_PIXELS);
+            }
+        }
+        setTimeout(paint, period);
+    })();
 </script>
